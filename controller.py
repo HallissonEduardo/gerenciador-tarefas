@@ -2,7 +2,6 @@ from model import TarefaModel
 from view import TarefaView
 
 
-# INICIANDO CONTROLLER ------------------------------------------------------------
 
 class TarefaController:
 

@@ -1,4 +1,4 @@
-# INICIANDO MODEL--------------------------------------------------------------------------------------------------
+
 class TarefaModel:
 
     """
@@ -46,4 +46,3 @@ e passados pela classe TarefaController.
         return dados # RETORNA OS DADOS DAS DUAS LISTAS SALVAS EM UM DICIONARIO.
 
 
-# Finalizando Model--------------------------------------------------

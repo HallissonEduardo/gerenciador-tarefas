@@ -1,4 +1,4 @@
-# INICIANDO VIEW--------------------------------------------------------------------
+
 
 
 class TarefaView:
@@ -50,4 +50,3 @@ Essa classe é a TarefaView e responsavel exclusivamente por mostra informacoes 
             for concluida in concluidas:
                 print(concluida)
 
-# FINALIZANDO VIEW------------------------------------------------------------------------
