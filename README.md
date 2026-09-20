@@ -1,7 +1,7 @@
-# Gerenciador de Tarefas — Python + POO + MVC
+# Gerenciador de Tarefas — Python + MVC
 
 Aplicação de linha de comando (CLI) escrita em Python puro, sem dependências externas.
-O objetivo é praticar **Programação Orientada a Objetos** e o padrão **MVC**, separando
+O objetivo é praticar o padrão **MVC**, separando
 dados, interface e fluxo de controle em camadas independentes.
 
 ```bash
