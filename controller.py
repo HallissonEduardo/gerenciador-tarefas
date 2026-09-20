@@ -5,9 +5,6 @@ from view import TarefaView
 
 class TarefaController:
 
-    """
-Classe TarefaController responsavel por processar os dados, e fazer a ligação entre Model e View.
-    """
 
     def __init__(self):
         self.model = TarefaModel()

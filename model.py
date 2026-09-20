@@ -1,10 +1,7 @@
 
 class TarefaModel:
 
-    """
-Essa é a classe do TarefaModel, tem o objetivo e apenas armazenar os dados fornecidos na classe TarefaView;
-e passados pela classe TarefaController.
-    """
+   
 
     def __init__(self):
         self.tarefas_pendentes: list = []   # CRIEI DUAS LISTAS A PRIMEIRA CONTEM AS TAREFAS PENDENTES.
