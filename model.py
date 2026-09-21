@@ -1,3 +1,63 @@
+<<<<<<< HEAD
+import json
+from pathlib import Path
+
+
+
+class TarefaModel:
+
+    """
+    Essa é a classe do TarefaModel, tem o objetivo e apenas armazenar os dados fornecidos na classe TarefaView;
+  e passados pela classe TarefaController.
+Agora os dados tambem sao persistidos em um arquivo JSON, entao as tarefas sobrevivem ao fechamento do programa.
+    """
+
+    # CAMINHO PADRAO DO BANCO: FICA NA MESMA PASTA DOS MODULOS, INDEPENDENTE DE ONDE O SCRIPT FOR EXECUTADO.
+    ARQUIVO_PADRAO = Path(__file__).parent / "tarefas.json"
+
+    def __init__(self, arquivo=None):
+        self.arquivo = Path(arquivo) if arquivo else self.ARQUIVO_PADRAO
+
+        self.tarefas_pendentes: list = []   # CRIEI DUAS LISTAS A PRIMEIRA CONTEM AS TAREFAS PENDENTES.
+        self.tarefas_concluidas: list = [] # A SEGUNDA CONTEM TODAS AS TAREFAS CONCLUIDAS.
+
+        self.carregar() # AO INICIAR, JA TRAZ O QUE ESTAVA SALVO NO JSON.
+
+
+    # ---------- PERSISTENCIA ----------
+
+    def carregar(self) -> bool:
+        # LE O JSON E PREENCHE AS DUAS LISTAS. SE O ARQUIVO NAO EXISTIR, COMECA VAZIO (PRIMEIRA EXECUCAO).
+        if not self.arquivo.exists():
+            return False
+
+        try:
+            with open(self.arquivo, "r", encoding="utf-8") as f:
+                dados = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            # ARQUIVO CORROMPIDO OU SEM PERMISSAO DE LEITURA: NAO DERRUBA O PROGRAMA, SO IGNORA O CONTEUDO.
+            return False
+
+        # .get() COM LISTA VAZIA EVITA KeyError SE O JSON VIER INCOMPLETO.
+        self.tarefas_pendentes = dados.get("Tarefas Pendentes", [])
+        self.tarefas_concluidas = dados.get("Tarefas Concluidas", [])
+        return True
+
+
+    def salvar(self) -> bool:
+        # GRAVA O DICIONARIO INTEIRO NO JSON. E CHAMADO SEMPRE QUE UMA LISTA MUDA.
+        try:
+            with open(self.arquivo, "w", encoding="utf-8") as f:
+                # ensure_ascii=False MANTEM ACENTOS LEGIVEIS / indent=4 DEIXA O ARQUIVO LEGIVEL PARA HUMANOS.
+                json.dump(self.dicionario_tarefas(), f, ensure_ascii=False, indent=4)
+        except OSError:
+            return False
+
+        return True
+
+
+    # ---------- REGRAS DE NEGOCIO ----------
+=======
 
 class TarefaModel:
 
@@ -7,6 +67,7 @@ class TarefaModel:
         self.tarefas_pendentes: list = []   # CRIEI DUAS LISTAS A PRIMEIRA CONTEM AS TAREFAS PENDENTES.
         self.tarefas_concluidas: list = [] # A SEGUNDA CONTEM TODAS AS TAREFAS CONCLUIDAS.
 
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
 
     def adicionar_pendentes(self, tarefa) -> bool:
         self.tarefa_limpa = tarefa # RECEBE A TAREFA PENDENTE PASSADA NO PELA CLASSE VIEW E ENTREGUE PELO CONTROLLER
@@ -15,6 +76,10 @@ class TarefaModel:
             return False
 
         self.tarefas_pendentes.append(self.tarefa_limpa) # ADICIONA TAREFA A LISTA TAREFAS_PENDENTES.
+<<<<<<< HEAD
+        self.salvar() # PERSISTE A MUDANCA NO JSON.
+=======
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
         return True
 
 
@@ -31,6 +96,10 @@ class TarefaModel:
 
         self.tarefas_pendentes.remove(self.concluir_tarefa) # REMOVE DA LISTA DE PENDENTES
         self.tarefas_concluidas.append(self.concluir_tarefa) # E EM SEGUIDA ADICIONA NA LISTA DE CONCLUIDAS
+<<<<<<< HEAD
+        self.salvar() # PERSISTE A MUDANCA NO JSON.
+=======
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
         return True
 
 
