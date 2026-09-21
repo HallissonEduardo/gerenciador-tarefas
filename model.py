@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 from pathlib import Path
 
@@ -56,6 +57,17 @@ Agora os dados tambem sao persistidos em um arquivo JSON, entao as tarefas sobre
 
 
     # ---------- REGRAS DE NEGOCIO ----------
+=======
+
+class TarefaModel:
+
+   
+
+    def __init__(self):
+        self.tarefas_pendentes: list = []   # CRIEI DUAS LISTAS A PRIMEIRA CONTEM AS TAREFAS PENDENTES.
+        self.tarefas_concluidas: list = [] # A SEGUNDA CONTEM TODAS AS TAREFAS CONCLUIDAS.
+
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
 
     def adicionar_pendentes(self, tarefa) -> bool:
         self.tarefa_limpa = tarefa # RECEBE A TAREFA PENDENTE PASSADA NO PELA CLASSE VIEW E ENTREGUE PELO CONTROLLER
@@ -64,7 +76,10 @@ Agora os dados tambem sao persistidos em um arquivo JSON, entao as tarefas sobre
             return False
 
         self.tarefas_pendentes.append(self.tarefa_limpa) # ADICIONA TAREFA A LISTA TAREFAS_PENDENTES.
+<<<<<<< HEAD
         self.salvar() # PERSISTE A MUDANCA NO JSON.
+=======
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
         return True
 
 
@@ -81,7 +96,10 @@ Agora os dados tambem sao persistidos em um arquivo JSON, entao as tarefas sobre
 
         self.tarefas_pendentes.remove(self.concluir_tarefa) # REMOVE DA LISTA DE PENDENTES
         self.tarefas_concluidas.append(self.concluir_tarefa) # E EM SEGUIDA ADICIONA NA LISTA DE CONCLUIDAS
+<<<<<<< HEAD
         self.salvar() # PERSISTE A MUDANCA NO JSON.
+=======
+>>>>>>> 07f02a7bd466ba3263d8abe85e8c19f6174ddf68
         return True
 
 
