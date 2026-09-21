@@ -3,6 +3,9 @@
 
 class TarefaView:
 
+    """
+Essa classe é a TarefaView e responsavel exclusivamente por mostra informacoes processadas pelo Controlller,
+    """
 
     def interface(self) -> None:
         print("\n--Gerenciador De Tarefas---")
