@@ -1,63 +1,57 @@
-from model import TarefaModel
-from view import TarefaView
-
+from model import TarefaModelPort
+from repository import PersistenceError
+from view import TarefaViewPort
 
 
 class TarefaController:
+    def __init__(
+        self,
+        model: TarefaModelPort,
+        view: TarefaViewPort,
+    ) -> None:
+        self.model = model
+        self.view = view
 
-
-    def __init__(self):
-        self.model = TarefaModel()
-        self.view = TarefaView()
-
-
-    def dicionario(self):
-        self.listas = self.model.dicionario_tarefas()
-        return self.listas
-
-
-    def iniciar(self):
-
+    def iniciar(self) -> None:
         while True:
-
             self.view.interface()
-            self.opcao = self.view.pedir_dados("\nDigite o número referente a opção desejada:")
+            opcao = self.view.pedir_dados("\nDigite o número referente a opção desejada:")
 
-
-            match self.opcao:
-
+            match opcao:
                 case "1":
-
-                    self.novo_tarefa = self.view.adicionar_texto_tarefa("\nQual tarefa quer adicionar:")
-
-                    if self.model.adicionar_pendentes(self.novo_tarefa): # AGORA O MODEL CONFIRMA SE GRAVOU
-                        self.view.exibir_mensagem("\nTarefa adicionada com sucesso")
+                    tarefa = self.view.adicionar_texto_tarefa("\nQual tarefa quer adicionar:")
+                    try:
+                        adicionada = self.model.adicionar_pendentes(tarefa)
+                    except PersistenceError as error:
+                        self.view.exibir_mensagem(f"\nErro de persistência: {error}")
                     else:
-                        self.view.exibir_mensagem("\nTarefa vazia, nada foi adicionado")
-
+                        if adicionada:
+                            self.view.exibir_mensagem("\nTarefa adicionada com sucesso")
+                        else:
+                            self.view.exibir_mensagem("\nTarefa vazia, nada foi adicionado")
                 case "2":
-
                     dados = self.model.dicionario_tarefas()
-
-                    lista_pendentes = dados["Tarefas Pendentes"]
-
-                    lista_concluidas = dados["Tarefas Concluidas"]
-
-                    self.view.listar_tarefas(lista_pendentes, lista_concluidas)
-
+                    self.view.listar_tarefas(
+                        dados["Tarefas Pendentes"],
+                        dados["Tarefas Concluidas"],
+                    )
                 case "3":
-
-                    self.concluir_tarefa = self.view.adicionar_texto_tarefa("\nQual tarefa quer marcar como concluida:")
-
-                    # CORRECAO: SO AVISA SUCESSO SE A TAREFA EXISTIA MESMO EM PENDENTES
-                    if self.model.tarefa_concluida(self.concluir_tarefa):
-                        self.view.exibir_mensagem("\nTarefa concluida com sucesso")
+                    tarefa = self.view.adicionar_texto_tarefa(
+                        "\nQual tarefa quer marcar como concluida:"
+                    )
+                    try:
+                        concluida = self.model.tarefa_concluida(tarefa)
+                    except PersistenceError as error:
+                        self.view.exibir_mensagem(f"\nErro de persistência: {error}")
                     else:
-                        self.view.exibir_mensagem("\nTarefa não encontrada na lista de pendentes")
-
+                        if concluida:
+                            self.view.exibir_mensagem("\nTarefa concluida com sucesso")
+                        else:
+                            self.view.exibir_mensagem(
+                                "\nTarefa não encontrada na lista de pendentes"
+                            )
                 case "4":
                     self.view.exibir_mensagem("\nSaindo do Gerenciador de Tarefas")
-                    return False
-
+                    return
                 case _:
                     self.view.exibir_mensagem("\nValor invalido")
