@@ -1,6 +1,9 @@
 {
-    "Tarefas Pendentes": [],
+    "Tarefas Pendentes": [
+        "cocluir projeto do gerenciador de tarefas",
+        "Adicionar interface Tkinter"
+    ],
     "Tarefas Concluidas": [
-        "BANCO DE DADO JSON"
+        "BANCO DE DADOS JSON"
     ]
 }

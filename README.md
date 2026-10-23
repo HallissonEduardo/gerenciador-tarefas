@@ -1,119 +1,69 @@
-# Gerenciador de Tarefas — Python + MVC
+ # Gerenciador de Tarefas — Python 
 
-Aplicação de linha de comando (CLI) escrita em Python puro, sem dependências externas.
-O objetivo é praticar o padrão **MVC**, separando
-dados, interface e fluxo de controle em camadas independentes.
+Aplicação de linha de comando em Python, sem dependências externas, para cadastrar,
+listar e concluir tarefas. Os dados são persistidos em `tarefas.json`, localizado
+na mesma pasta do projeto.
 
 ```bash
 python main.py
 ```
 
-Requisitos: Python 3.10 ou superior (por causa do `match/case`).
-
----
+Requisito: Python 3.10 ou superior, por causa do `match/case`.
 
 ## Arquitetura
 
-| Arquivo | Camada | Responsabilidade |
-|---|---|---|
-| `model.py` | Model | Guarda e manipula as tarefas. Não imprime nada. |
-| `view.py` | View | Só `print()` e `input()`. Não decide nada. |
-| `controller.py` | Controller | Traduz a escolha do usuário em chamadas ao Model e à View. |
-| `main.py` | Entrada | Instancia o Controller e inicia o loop. |
+| Arquivo | Responsabilidade |
+|---|---|
+| `main.py` | Ponto de entrada; inicia o Controller e exibe falhas de carregamento. |
+| `controller.py` | Coordena as ações do usuário entre Model e View. |
+| `model.py` | Mantém o estado das tarefas e aplica as regras de negócio. |
+| `repository.py` | Define o contrato do repositório e implementa a persistência JSON. |
+| `view.py` | Apresenta o menu, recebe entrada e exibe resultados no terminal. |
+| `tarefas.json` | Armazenamento persistente das tarefas. |
 
-Fluxo de uma operação (adicionar tarefa):
+O fluxo continua no padrão MVC: a View não acessa o Model nem o repositório; o
+Controller coordena a interação. O Model depende da abstração `TarefaRepository`,
+em vez de implementar operações de arquivo, e `JsonTarefaRepository` fornece a
+implementação usada por padrão.
 
+## SOLID aplicado
+
+- **Responsabilidade única (SRP):** regras das tarefas ficam no Model; leitura e
+  gravação JSON ficam no repositório; interação com o terminal fica na View.
+- **Aberto/fechado (OCP):** é possível adicionar outro repositório compatível com
+  `TarefaRepository` sem alterar as regras do Model.
+- **Substituição de Liskov (LSP):** qualquer implementação que cumpra o contrato
+  `carregar()`/`salvar()` pode substituir o repositório JSON.
+- **Segregação de interfaces (ISP):** o contrato do repositório contém apenas as
+  operações necessárias para carregar e salvar tarefas.
+- **Inversão de dependência (DIP):** o Model recebe o repositório por injeção; o
+  Controller também permite receber Model e View, facilitando testes e substituições.
+
+## Operações
+
+- **Adicionar:** rejeita texto vazio ou composto apenas por espaços.
+- **Listar:** exibe tarefas pendentes e concluídas.
+- **Concluir:** move uma ocorrência da tarefa de pendentes para concluídas; uma
+  tarefa que não exista na lista pendente não altera o estado.
+- **Sair:** encerra o loop do menu.
+
+As alterações são gravadas antes de atualizar o estado em memória. Se a gravação
+falhar, a operação não é confirmada e as listas mantêm os valores anteriores.
+Falhas de leitura, JSON malformado, conteúdo incompatível e falhas de gravação são
+reportados como erros de persistência; o programa não os ignora silenciosamente.
+Na primeira execução, se `tarefas.json` ainda não existir, o repositório começa
+com listas vazias e cria o arquivo na primeira alteração bem-sucedida.
+
+## Injeção de dependências
+
+O Model pode receber um repositório alternativo:
+
+```python
+model = TarefaModel(repositorio=meu_repositorio)
+controller = TarefaController(model=model, view=minha_view)
 ```
-main → Controller.iniciar()
-         ↓ pede o texto
-       View.adicionar_texto_tarefa()  →  usuário digita
-         ↓ repassa a string
-       Model.adicionar_pendentes()    →  grava na lista
-         ↓ confirma
-       View.exibir_mensagem()         →  usuário lê
-```
 
-O ponto central: **a View nunca fala com o Model**. Toda troca passa pelo Controller.
-
----
-
-## Model (`model.py`)
-
-`TarefaModel` mantém duas listas em memória:
-
-- `tarefas_pendentes` — tarefas ainda em aberto
-- `tarefas_concluidas` — tarefas já finalizadas
-
-| Método | O que faz |
-|---|---|
-| `adicionar_pendentes(tarefa)` | Rejeita string vazia e adiciona à lista de pendentes. |
-| `tarefa_concluida(tarefa)` | Remove de pendentes e move para concluídas. |
-| `dicionario_tarefas()` | Devolve as duas listas em um `dict`, pronto para leitura. |
-
-Por que um dicionário no retorno? Porque a camada que consome não precisa conhecer
-os atributos internos do objeto — ela recebe um pacote de dados já organizado.
-
----
-
-## View (`view.py`)
-
-`TarefaView` é a única camada que enxerga o terminal.
-
-| Método | O que faz |
-|---|---|
-| `interface()` | Desenha o menu (1 a 4). |
-| `pedir_dados(msg)` | Lê a opção escolhida, já com `.strip()`. |
-| `adicionar_texto_tarefa(msg)` | Lê o texto da tarefa, já com `.strip()`. |
-| `exibir_mensagem(msg)` | Mostra retorno ao usuário. |
-| `listar_tarefas(pendentes, concluidas)` | Recebe as listas prontas e imprime cada uma. |
-
-`listar_tarefas` recebe as listas como **parâmetro** — não vai buscá-las no Model.
-É isso que mantém a View substituível: trocar o terminal por Tkinter ou por uma API web
-exige reescrever só este arquivo.
-
----
-
-## Controller (`controller.py`)
-
-`TarefaController` instancia Model e View no construtor e roda um `while True` com
-`match/case` sobre a opção digitada:
-
-| Opção | Ação |
-|---|---|
-| 1 | Pede o texto → grava no Model → confirma na View |
-| 2 | Busca o dicionário no Model → entrega as listas para a View imprimir |
-| 3 | Pede o nome da tarefa → Model move de pendentes para concluídas |
-| 4 | Encerra o loop |
-| outro | Avisa que a opção é inválida |
-
-O `match/case` substitui uma cadeia de `if/elif` e deixa o roteamento das opções
-mais legível.
-
----
-
-## Decisões de projeto
-
-**Separação de responsabilidades.** A lógica de negócio vive no Model, isolada da
-interface. Se amanhã este CLI virar uma tela gráfica, o Model continua intacto.
-
-**Limpeza preventiva na entrada.** O `.strip()` aplicado no momento da leitura evita
-que espaços em branco entrem como tarefa válida.
-
-**Model sem estado externo.** Os dados existem só enquanto o programa roda. É uma
-escolha consciente para manter o foco no padrão arquitetural, não em persistência.
-
----
-
-## Futuras atualizacoes
-
-Pontos já mapeados para evoluir o projeto:
-
-1. **Injeção de dependências** — receber Model e View como parâmetros do Controller
-   (`TarefaController(model, view)`) em vez de instanciá-los internamente. Facilita
-   testes automatizados, permitindo passar dublês no lugar das classes reais.
-2. **Persistência** — salvar as listas em JSON ou SQLite para os dados sobreviverem
-   ao fechamento do programa.
-3. **Seleção por índice** — concluir tarefas pelo número da lista em vez de digitar
-   o texto exato.
-4. **Testes** — cobrir o Model com `unittest` ou `pytest`, já que ele não depende de
-   entrada e saída.
+O ponto de entrada (`main.py`) monta os componentes concretos: Model com
+`JsonTarefaRepository`, Controller e View do terminal. O Controller recebe os
+contratos `TarefaModelPort` e `TarefaViewPort`; assim, testes podem injetar dublês
+sem depender das implementações reais.
