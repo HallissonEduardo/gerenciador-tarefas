@@ -1,45 +1,57 @@
+from typing import Protocol
+
+from repository import TarefaRepository
+
+
+class TarefaModelPort(Protocol):
+    def adicionar_pendentes(self, tarefa: str) -> bool:
+        ...
+
+    def tarefa_concluida(self, concluir_tarefa: str) -> bool:
+        ...
+
+    def dicionario_tarefas(self) -> dict[str, list[str]]:
+        ...
+
 
 class TarefaModel:
+    """Mantém as tarefas e aplica as regras de negócio."""
 
-   
+    def __init__(self, repositorio: TarefaRepository) -> None:
+        self._repositorio = repositorio
+        dados = self._repositorio.carregar()
+        self.tarefas_pendentes = dados["Tarefas Pendentes"]
+        self.tarefas_concluidas = dados["Tarefas Concluidas"]
 
-    def __init__(self):
-        self.tarefas_pendentes: list = []   # CRIEI DUAS LISTAS A PRIMEIRA CONTEM AS TAREFAS PENDENTES.
-        self.tarefas_concluidas: list = [] # A SEGUNDA CONTEM TODAS AS TAREFAS CONCLUIDAS.
-
-
-    def adicionar_pendentes(self, tarefa) -> bool:
-        self.tarefa_limpa = tarefa # RECEBE A TAREFA PENDENTE PASSADA NO PELA CLASSE VIEW E ENTREGUE PELO CONTROLLER
-
-        if not self.tarefa_limpa: # VALIDA SE TAREFA EXISTE
+    def adicionar_pendentes(self, tarefa: str) -> bool:
+        if not tarefa or not tarefa.strip():
             return False
 
-        self.tarefas_pendentes.append(self.tarefa_limpa) # ADICIONA TAREFA A LISTA TAREFAS_PENDENTES.
+        pendentes = [*self.tarefas_pendentes, tarefa]
+        self._salvar(pendentes, self.tarefas_concluidas)
+        self.tarefas_pendentes = pendentes
         return True
 
-
-    def tarefa_concluida(self, concluir_tarefa) -> bool:
-        self.concluir_tarefa = concluir_tarefa # RECEBE A TAREFA QUE FICARA COMO CONCLUIDA
-
-        if not self.concluir_tarefa: # VALIDA SE TAREFA EXISTE
+    def tarefa_concluida(self, concluir_tarefa: str) -> bool:
+        if not concluir_tarefa or concluir_tarefa not in self.tarefas_pendentes:
             return False
 
-        # CORRECAO: SO MOVE PARA CONCLUIDAS SE A TAREFA REALMENTE EXISTIR EM PENDENTES.
-        # ANTES O APPEND ESTAVA FORA DO IF, ENTAO QUALQUER TEXTO INVENTADO VIRAVA "CONCLUIDO".
-        if self.concluir_tarefa not in self.tarefas_pendentes:
-            return False
-
-        self.tarefas_pendentes.remove(self.concluir_tarefa) # REMOVE DA LISTA DE PENDENTES
-        self.tarefas_concluidas.append(self.concluir_tarefa) # E EM SEGUIDA ADICIONA NA LISTA DE CONCLUIDAS
+        pendentes = self.tarefas_pendentes.copy()
+        pendentes.remove(concluir_tarefa)
+        concluidas = [*self.tarefas_concluidas, concluir_tarefa]
+        self._salvar(pendentes, concluidas)
+        self.tarefas_pendentes = pendentes
+        self.tarefas_concluidas = concluidas
         return True
 
-
-    def dicionario_tarefas(self) -> dict:
-        dados = {
+    def dicionario_tarefas(self) -> dict[str, list[str]]:
+        return {
             "Tarefas Pendentes": self.tarefas_pendentes,
-            "Tarefas Concluidas": self.tarefas_concluidas
+            "Tarefas Concluidas": self.tarefas_concluidas,
         }
 
-        return dados # RETORNA OS DADOS DAS DUAS LISTAS SALVAS EM UM DICIONARIO.
-
-
+    def _salvar(self, pendentes: list[str], concluidas: list[str]) -> None:
+        self._repositorio.salvar({
+            "Tarefas Pendentes": pendentes,
+            "Tarefas Concluidas": concluidas,
+        })
