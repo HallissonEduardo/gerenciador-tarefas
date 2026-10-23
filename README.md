@@ -1,4 +1,4 @@
-# Gerenciador de Tarefas — Python + MVC
+ # Gerenciador de Tarefas — Python 
 
 Aplicação de linha de comando em Python, sem dependências externas, para cadastrar,
 listar e concluir tarefas. Os dados são persistidos em `tarefas.json`, localizado
