@@ -1,24 +1,24 @@
  # Gerenciador de Tarefas — Python 
 
-Aplicação de linha de comando em Python, sem dependências externas, para cadastrar,
-listar e concluir tarefas. Os dados são persistidos em `tarefas.json`, localizado
-na mesma pasta do projeto.
+Aplicação em Python para cadastrar, listar e concluir tarefas. A interface gráfica
+usa Tkinter e os dados são persistidos em `tarefas.json`, localizado na mesma
+pasta do projeto.
 
 ```bash
 python main.py
 ```
 
-Requisito: Python 3.10 ou superior, por causa do `match/case`.
+Requisito: Python 3.10 ou superior.
 
 ## Arquitetura
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `main.py` | Ponto de entrada; inicia o Controller e exibe falhas de carregamento. |
-| `controller.py` | Coordena as ações do usuário entre Model e View. |
+| `main.py` | Ponto de entrada; monta e inicia a interface gráfica. |
+| `controller.py` | Expõe as operações e coordena as ações entre View e Model. |
 | `model.py` | Mantém o estado das tarefas e aplica as regras de negócio. |
 | `repository.py` | Define o contrato do repositório e implementa a persistência JSON. |
-| `view.py` | Apresenta o menu, recebe entrada e exibe resultados no terminal. |
+| `view.py` | Apresenta a interface gráfica com Tkinter. |
 | `tarefas.json` | Armazenamento persistente das tarefas. |
 
 O fluxo continua no padrão MVC: a View não acessa o Model nem o repositório; o
@@ -37,7 +37,8 @@ implementação usada por padrão.
 - **Segregação de interfaces (ISP):** o contrato do repositório contém apenas as
   operações necessárias para carregar e salvar tarefas.
 - **Inversão de dependência (DIP):** o Model recebe o repositório por injeção; o
-  Controller também permite receber Model e View, facilitando testes e substituições.
+  Controller recebe o contrato do Model, e a View depende do contrato do
+  Controller, facilitando testes e substituições.
 
 ## Operações
 
@@ -45,7 +46,7 @@ implementação usada por padrão.
 - **Listar:** exibe tarefas pendentes e concluídas.
 - **Concluir:** move uma ocorrência da tarefa de pendentes para concluídas; uma
   tarefa que não exista na lista pendente não altera o estado.
-- **Sair:** encerra o loop do menu.
+- **Fechar:** encerra a janela da aplicação.
 
 As alterações são gravadas antes de atualizar o estado em memória. Se a gravação
 falhar, a operação não é confirmada e as listas mantêm os valores anteriores.
@@ -56,14 +57,14 @@ com listas vazias e cria o arquivo na primeira alteração bem-sucedida.
 
 ## Injeção de dependências
 
-O Model pode receber um repositório alternativo:
+O Model pode receber um repositório alternativo, e o Controller pode receber um
+Model compatível com seu contrato:
 
 ```python
 model = TarefaModel(repositorio=meu_repositorio)
-controller = TarefaController(model=model, view=minha_view)
+controller = TarefaController(model=model)
 ```
 
-O ponto de entrada (`main.py`) monta os componentes concretos: Model com
-`JsonTarefaRepository`, Controller e View do terminal. O Controller recebe os
-contratos `TarefaModelPort` e `TarefaViewPort`; assim, testes podem injetar dublês
-sem depender das implementações reais.
+O ponto de entrada (`main.py`) monta o Model com `JsonTarefaRepository`, o
+Controller e a View Tkinter. A View depende de `TarefaControllerPort`, permitindo
+substituir o Controller por um dublê nos testes.
